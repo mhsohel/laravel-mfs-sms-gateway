@@ -18,9 +18,21 @@ class MfsSmsWebhookController extends Controller
      */
     public function handle(Request $request, ?string $provider = null)
     {
+        // Try decoding raw JSON if payload was sent without application/json header
+        $rawContent = $request->getContent();
+        $jsonData = null;
+        if (!empty($rawContent) && (\Illuminate\Support\Str::startsWith(trim($rawContent), '{') || $request->isJson())) {
+            $decoded = json_decode($rawContent, true);
+            if (is_array($decoded)) {
+                $jsonData = $decoded;
+            }
+        }
+
         // 1. Validate Secret Token
         $token = $request->query('token')
             ?? $request->input('token')
+            ?? ($jsonData['token'] ?? null)
+            ?? ($jsonData['secret'] ?? null)
             ?? $request->header('X-Webhook-Token')
             ?? $request->bearerToken();
 
@@ -38,11 +50,19 @@ class MfsSmsWebhookController extends Controller
             ?? $request->input('body')
             ?? $request->input('sms_body')
             ?? $request->input('content')
-            ?? $request->getContent();
+            ?? ($jsonData['text'] ?? null)
+            ?? ($jsonData['message'] ?? null)
+            ?? ($jsonData['body'] ?? null)
+            ?? ($jsonData['sms_body'] ?? null)
+            ?? ($jsonData['content'] ?? null)
+            ?? ($jsonData ? null : $rawContent);
 
         $sender = $request->input('from')
             ?? $request->input('sender')
-            ?? $request->input('phone');
+            ?? $request->input('phone')
+            ?? ($jsonData['from'] ?? null)
+            ?? ($jsonData['sender'] ?? null)
+            ?? ($jsonData['phone'] ?? null);
 
         if (empty($smsBody)) {
             return response()->json([
@@ -62,10 +82,13 @@ class MfsSmsWebhookController extends Controller
 
         $result = MfsSms::processSms($smsBody, $sender, $provider, $meta);
 
-        $httpCode = ($result['success'] || !empty($result['is_duplicate'])) ? 200 : 422;
+        // Acknowledge non-payment or duplicate SMS with 200 so Android forwarder doesn't loop retry endlessly
+        $statusStr = $result['success']
+            ? 'success'
+            : (!empty($result['is_duplicate']) ? 'duplicate' : 'ignored');
 
         return response()->json([
-            'status'         => $result['success'] ? 'success' : 'failed',
+            'status'         => $statusStr,
             'matched'        => $result['matched'] ?? false,
             'order_id'       => $result['order_id'] ?? null,
             'is_duplicate'   => $result['is_duplicate'] ?? false,
@@ -74,7 +97,7 @@ class MfsSmsWebhookController extends Controller
             'provider'       => $result['provider'] ?? $provider,
             'transaction_id' => $result['transaction_id'] ?? null,
             'message'        => $result['message'],
-        ], $httpCode);
+        ], 200);
     }
 
     /**

@@ -12,10 +12,12 @@ return [
     |
     */
     'routes' => [
-        'web_prefix'  => 'mfs-sms',
-        'api_prefix'  => 'api/mfs-sms',
-        'web_middleware' => ['web'],
-        'api_middleware' => ['api'],
+        'web_prefix'       => 'mfs-sms',
+        'api_prefix'       => 'api/mfs-sms',
+        'admin_prefix'     => 'admin/mfs-sms',
+        'web_middleware'   => ['web'],
+        'api_middleware'   => ['api'],
+        'admin_middleware' => ['web', 'auth'],
     ],
 
     /*
@@ -130,9 +132,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Database Table for Storing Forwarded SMS
+    | Database Tables
     |--------------------------------------------------------------------------
     */
-    'table_name' => 'mfs_sms_transactions',
+    'table_name'          => 'mfs_sms_transactions',
+    'settings_table_name' => 'mfs_sms_settings',
 
 ];

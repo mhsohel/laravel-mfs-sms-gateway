@@ -266,19 +266,50 @@
   let expiresAt = {{ $expiresAt }};
   let pollInterval = null;
 
+  // Non-intrusive Toast Helper
+  function showToast(msg) {
+    let toast = document.getElementById('mfs_toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'mfs_toast';
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:50px;font-size:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:9999;transition:opacity 0.3s ease;';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = '<i class="fa-solid fa-check me-1 text-success"></i> ' + msg;
+    toast.style.opacity = '1';
+    clearTimeout(window.__toastTimeout);
+    window.__toastTimeout = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 2500);
+  }
+
   // Clipboard copy helper
   function copyText(text, msg) {
-    navigator.clipboard.writeText(text).then(function() {
-      alert(msg || 'Copied to clipboard!');
-    }).catch(function() {
-      const el = document.createElement('textarea');
-      el.value = text;
-      document.body.appendChild(el);
-      el.select();
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function() {
+        showToast(msg || 'Copied to clipboard!');
+      }).catch(function() {
+        fallbackCopyText(text, msg);
+      });
+    } else {
+      fallbackCopyText(text, msg);
+    }
+  }
+
+  function fallbackCopyText(text, msg) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.select();
+    try {
       document.execCommand('copy');
-      document.body.removeChild(el);
+      showToast(msg || 'Copied to clipboard!');
+    } catch (err) {
       alert(msg || 'Copied to clipboard!');
-    });
+    }
+    document.body.removeChild(el);
   }
 
   // Countdown Timer
@@ -289,6 +320,12 @@
     if (diff <= 0) {
       document.getElementById('countdown_timer').innerText = "Expired";
       document.getElementById('status_text').innerText = "Session expired. If you transferred, please enter your TrxID below.";
+      
+      const collapseEl = document.getElementById('collapseManual');
+      if (collapseEl && !collapseEl.classList.contains('show') && window.bootstrap) {
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+        bsCollapse.show();
+      }
       return;
     }
 
@@ -312,6 +349,7 @@
       if (data.new_expiry) {
         expiresAt = data.new_expiry;
         updateCountdown();
+        showToast('Added 15 more minutes to your session!');
       }
     });
   }
@@ -373,8 +411,15 @@
           window.location.href = data.redirect_url;
         }, 1200);
       } else {
+        let errMsg = data.message;
+        if (data.errors && typeof data.errors === 'object') {
+          const keys = Object.keys(data.errors);
+          if (keys.length > 0 && Array.isArray(data.errors[keys[0]])) {
+            errMsg = data.errors[keys[0]][0];
+          }
+        }
         feedback.className = 'alert alert-danger mt-2 p-2 small';
-        feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + data.message;
+        feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + (errMsg || 'Verification failed. Please check your TrxID.');
       }
     })
     .catch(err => {

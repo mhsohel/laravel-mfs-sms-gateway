@@ -23,3 +23,4 @@ Route::group(['prefix' => $prefix, 'middleware' => $middleware], function () {
     // Web test simulator (for admin / developer testing)
     Route::post('test-simulator', [MfsSmsWebhookController::class, 'testSimulator'])->name('mfs.sms.test_simulator');
 });
+

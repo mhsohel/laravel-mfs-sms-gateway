@@ -19,7 +19,7 @@ return new class extends Migration
             Schema::create($tableName, function (Blueprint $table) {
                 $table->id();
                 $table->string('provider', 30)->default('bkash')->index(); // bkash, nagad, rocket, upay
-                $table->unsignedBigInteger('order_id')->nullable()->index();
+                $table->string('order_id', 64)->nullable()->index();
                 $table->string('sender', 50)->nullable(); // e.g. bKash, NAGAD, 16247
                 $table->string('sender_number', 30)->nullable()->index(); // customer mobile number
                 $table->decimal('amount', 12, 2)->default(0)->index();

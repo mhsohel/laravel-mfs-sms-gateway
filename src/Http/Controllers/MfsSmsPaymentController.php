@@ -12,6 +12,9 @@ class MfsSmsPaymentController extends Controller
     /**
      * Show customer automated payment screen.
      */
+    /**
+     * Show customer automated payment screen.
+     */
     public function pay($order_id, Request $request)
     {
         $orderModelClass = config('mfs-sms.order.model', 'App\\Models\\Order');
@@ -23,8 +26,12 @@ class MfsSmsPaymentController extends Controller
         $statusCol = config('mfs-sms.order.status_column', 'order_status');
         $paidVal = config('mfs-sms.order.paid_status_value', 7);
         $payStatusCol = config('mfs-sms.order.payment_status_column', 'payment_status');
+        $paidPayStatusVal = config('mfs-sms.order.paid_payment_status_value', 'paid');
 
-        if (($order->{$statusCol} ?? null) == $paidVal || strtolower($order->{$payStatusCol} ?? '') === 'paid') {
+        $currentStatus = (string) ($order->{$statusCol} ?? '');
+        $currentPayStatus = strtolower((string) ($order->{$payStatusCol} ?? ''));
+
+        if ($currentStatus === (string) $paidVal || $currentPayStatus === strtolower((string) $paidPayStatusVal) || $currentPayStatus === 'paid') {
             return redirect($this->resolveSuccessUrl($order));
         }
 
@@ -76,8 +83,14 @@ class MfsSmsPaymentController extends Controller
         $statusCol = config('mfs-sms.order.status_column', 'order_status');
         $paidVal = config('mfs-sms.order.paid_status_value', 7);
         $payStatusCol = config('mfs-sms.order.payment_status_column', 'payment_status');
+        $paidPayStatusVal = config('mfs-sms.order.paid_payment_status_value', 'paid');
 
-        $isPaid = (($order->{$statusCol} ?? null) == $paidVal) || (strtolower($order->{$payStatusCol} ?? '') === 'paid');
+        $currentStatus = (string) ($order->{$statusCol} ?? '');
+        $currentPayStatus = strtolower((string) ($order->{$payStatusCol} ?? ''));
+
+        $isPaid = ($currentStatus === (string) $paidVal) ||
+                  ($currentPayStatus === strtolower((string) $paidPayStatusVal)) ||
+                  ($currentPayStatus === 'paid');
 
         if ($isPaid) {
             $matchedTrx = MfsSmsTransaction::where('order_id', $order_id)->latest()->first();
@@ -112,14 +125,35 @@ class MfsSmsPaymentController extends Controller
         $primaryKey = config('mfs-sms.order.primary_key', 'id');
         $order = $orderModelClass::where($primaryKey, $order_id)->firstOrFail();
 
+        $amountCol = config('mfs-sms.order.amount_column', 'amount');
+        $payableAmount = (float) ($order->{$amountCol} ?? 0);
+
         // 1. Check if this TrxID exists in our received SMS database
         $transaction = MfsSmsTransaction::where('trx_id', $trxId)->first();
 
         if ($transaction) {
-            if ($transaction->status === 'matched' && $transaction->order_id != $order_id) {
+            // If already matched to THIS order, return success
+            if ($transaction->status === 'matched' && (string) $transaction->order_id === (string) $order_id) {
+                return response()->json([
+                    'success'      => true,
+                    'message'      => 'Payment already verified for this order.',
+                    'redirect_url' => $this->resolveSuccessUrl($order),
+                ]);
+            }
+
+            // If matched to a DIFFERENT order, reject
+            if ($transaction->status === 'matched' && (string) $transaction->order_id !== (string) $order_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'This Transaction ID has already been used for another order.',
+                ], 422);
+            }
+
+            // Verify amount matching to prevent fraud (e.g. paying Tk 10 for a Tk 50,000 order)
+            if ($transaction->amount > 0 && $payableAmount > 0 && abs($transaction->amount - $payableAmount) > 1.5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction amount (৳' . number_format($transaction->amount, 2) . ') does not match the order payable amount (৳' . number_format($payableAmount, 2) . ').',
                 ], 422);
             }
 
@@ -134,15 +168,14 @@ class MfsSmsPaymentController extends Controller
         }
 
         // 2. If SMS has not yet arrived on forwarder phone, create a pending transaction for manual review
-        $amountCol = config('mfs-sms.order.amount_column', 'amount');
-        $amount = (float) ($order->{$amountCol} ?? 0);
+        $phoneCol = config('mfs-sms.order.phone_column', 'phoneNumber');
 
         $newTrx = MfsSmsTransaction::create([
             'provider'      => $provider,
             'order_id'      => $order_id,
             'sender'        => ucfirst($provider) . ' (Manual Fallback)',
-            'sender_number' => $request->input('sender_number', $order->phoneNumber ?? null),
-            'amount'        => $amount,
+            'sender_number' => $request->input('sender_number', $order->{$phoneCol} ?? null),
+            'amount'        => $payableAmount,
             'trx_id'        => $trxId,
             'reference'     => "Order #{$order_id}",
             'raw_sms'       => "Manual Entry by Customer for Order #{$order_id}: TrxID {$trxId}",
@@ -182,6 +215,19 @@ class MfsSmsPaymentController extends Controller
         $primaryKey = config('mfs-sms.order.primary_key', 'id');
         $orderId = $order->{$primaryKey};
 
-        return url(str_replace('{order_id}', $orderId, $template));
+        $invoiceCol = config('mfs-sms.order.invoice_column', 'invoice_id');
+        $invoiceId = $order->{$invoiceCol} ?? $orderId;
+
+        $targetUrl = str_replace(
+            ['{order_id}', '{id}', '{invoice_id}'],
+            [$orderId, $orderId, $invoiceId],
+            $template
+        );
+
+        if (\Illuminate\Support\Str::startsWith($targetUrl, ['http://', 'https://'])) {
+            return $targetUrl;
+        }
+
+        return url($targetUrl);
     }
 }

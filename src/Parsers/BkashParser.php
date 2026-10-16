@@ -18,9 +18,8 @@ class BkashParser implements SmsParserInterface
         }
 
         // Check distinctive bKash text patterns
-        return (stripos($smsBody, 'You have received Tk') !== false || stripos($smsBody, 'received Tk') !== false)
-            && (stripos($smsBody, 'TrxID') !== false || stripos($smsBody, 'TxnID') !== false)
-            && (stripos($smsBody, 'bKash') !== false || stripos($smsBody, 'Ref') !== false);
+        return (stripos($smsBody, 'received Tk') !== false || stripos($smsBody, 'received payment Tk') !== false || stripos($smsBody, 'payment received Tk') !== false || stripos($smsBody, 'bKash') !== false)
+            && (stripos($smsBody, 'TrxID') !== false || stripos($smsBody, 'TxnID') !== false);
     }
 
     public function parse(string $smsBody, ?string $sender = null): array
@@ -30,8 +29,10 @@ class BkashParser implements SmsParserInterface
         $senderNumber = null;
         $reference = null;
 
-        // 1. Extract Amount: "You have received Tk 7,710.00" or "Tk 7,710.00"
-        if (preg_match('/(?:received\s+Tk|Tk\.?)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', $smsBody, $matches)) {
+        // 1. Extract Amount: "You have received Tk 7,710.00" or "You have received payment Tk 1,500.00" or "Tk 7,710.00"
+        if (preg_match('/(?:received(?:\s+payment)?\s+Tk\.?)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', $smsBody, $matches) ||
+            preg_match('/(?:payment\s+received\s+Tk\.?)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', $smsBody, $matches) ||
+            preg_match('/(?:Tk\.?)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', $smsBody, $matches)) {
             $amount = (float) str_replace(',', '', $matches[1]);
         }
 
@@ -45,12 +46,12 @@ class BkashParser implements SmsParserInterface
             $senderNumber = preg_replace('/^\+?88/', '', trim($matches[1]));
         }
 
-        // 4. Extract Reference: "Ref B2B-202610-8379" or "Ref: 46"
-        if (preg_match('/Ref[:\s]+([^\.\,\;\n]+)/i', $smsBody, $matches)) {
+        // 4. Extract Reference: cleanly terminate before Fee, Balance, TrxID, at, or punctuation
+        if (preg_match('/Ref[:\s]+(.*?)(?=\.|\n|\r|Fee|Balance|TrxID|TxnID|at\s+\d|\,|$)/i', $smsBody, $matches)) {
             $ref = trim($matches[1]);
-            // Remove trailing words like Fee, Balance, at
+            // Strip any remaining noise
             $ref = preg_replace('/\s+(Fee|Balance|at|\.)$/i', '', $ref);
-            $reference = trim($ref);
+            $reference = trim($ref) ?: null;
         }
 
         $isValid = !empty($trxId) && ($amount !== null && $amount > 0);

@@ -14,4 +14,7 @@ Route::group(['prefix' => $prefix, 'middleware' => $middleware], function () {
     Route::match(['get', 'post'], '{provider}/webhook', [MfsSmsWebhookController::class, 'handle'])
         ->where('provider', 'bkash|nagad|rocket|upay')
         ->name('mfs.sms.provider_webhook');
+
+    // API simulator endpoint (for backend/CLI/Postman developer testing)
+    Route::post('test-simulator', [MfsSmsWebhookController::class, 'testSimulator'])->name('mfs.sms.api_test_simulator');
 });

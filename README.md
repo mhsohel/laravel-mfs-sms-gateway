@@ -13,12 +13,14 @@ Customers pay directly to your personal/merchant SIM via Send Money or Payment. 
 ## ✨ Features
 
 - ⚡ **Zero Customer Friction**: Auto-detects customer payments in real-time via background webhook; manual TrxID entry is strictly optional as a fallback.
+- 🎛️ **Secure Admin Control Panel**: Dedicated suite at `/admin/mfs-sms` to manage credentials, toggle gateways, generate secure tokens, inspect transaction logs, and link unmatched payments.
 - 📱 **Multi-Provider Support**: Built-in regex parsers for **bKash**, **Nagad**, and **Rocket** (extensible for Upay).
-- 🛡️ **Fraud & Duplicate Prevention**: Automatically prevents duplicate TrxID submissions and replay attacks.
+- 🛡️ **Fraud & Duplicate Prevention**: Automatically prevents duplicate TrxID submissions and replay attacks with safe ±1.5 BDT margin tolerance.
 - 🎨 **Branded Payment Waiting Screen**: Live pulse radar animation, copy wallet number button, 15-minute countdown timer, and 3-second status polling with dynamic provider color palettes (bKash `#e2136e`, Nagad `#f04923`, Rocket `#8c2d82`).
-- 🔄 **Configurable Order Model**: Works with any Laravel `Order` model, column names, status values, and database schemas.
+- 🔄 **Configurable Order Model & Two-Way Sync**: Works with any Laravel `Order` model, database schemas, and seamlessly synchronizes with host application payment models.
+- 📋 **Transactions Audit Log**: Full searchable audit trail of all forwarded SMS messages with manual order binding fallback.
 - 🔔 **Laravel Events**: Dispatches `MfsSmsReceived` and `MfsPaymentMatched` events for easy notifications, SMS alerts, POS synchronization, and accounting.
-- 🧪 **Built-in Test Simulator**: Test and verify SMS parsing logic without needing an actual Android phone.
+- 🧪 **Built-in Test Simulator & Web Sandbox**: Test and verify SMS parsing logic without needing an actual Android phone.
 
 ---
 
@@ -69,15 +71,39 @@ php artisan vendor:publish --tag=mfs-sms-migrations
 
 # Publish Blade views (optional, if you want custom styling)
 php artisan vendor:publish --tag=mfs-sms-views
+
+# Publish Routes (optional, routes are auto-loaded by default; publish only if you need custom route definitions)
+php artisan vendor:publish --tag=mfs-sms-routes
 ```
 
 ### 2. Run Database Migrations
 ```bash
 php artisan migrate
 ```
-This creates the `mfs_sms_transactions` table to record all forwarded SMS and matched orders.
+This creates the `mfs_sms_transactions` table to record all forwarded SMS transactions and the `mfs_sms_settings` table to store your credentials securely.
 
-### 3. Configure `.env` File
+---
+
+## 🎛️ Admin Panel & Credentials Management
+
+Starting from **v1.3.0**, you don't even need to touch `.env` files to manage your MFS wallets! A complete administration suite is bundled with the package:
+
+- **Admin URL**: `https://yourdomain.com/admin/mfs-sms` (protected by your application's `auth` middleware)
+- **Live Wallet Controls**:
+  - Enable / Disable bKash, Nagad, and Rocket with real-time toggle switches.
+  - Configure Wallet Numbers, Account Types (Personal, Merchant, Agent, Uddokta).
+  - One-click cryptographic **Webhook Token Generator**.
+  - Ready-to-copy Webhook URLs for Android forwarder apps.
+- **Transactions Audit Trail**:
+  - View all forwarded SMS at `/admin/mfs-sms/transactions`.
+  - Filter by provider, status (`matched` / `unmatched`), TrxID, sender number, or order ID.
+  - **Manual Match**: Instantly bind unmatched customer payments to pending orders directly from the UI.
+- **Live SMS Parser Simulator**:
+  - Interactive simulator tab to test sample SMS strings against our regex parsers and verify extracted amounts, fees, and references.
+
+---
+
+### 3. Alternative: Configure via `.env` File (Optional Fallback)
 Add your wallet numbers and secret webhook tokens:
 
 ```env
@@ -201,7 +227,7 @@ print_r($result);
 ```
 
 Or make an HTTP POST request to:
-`POST /mfs-sms/test-simulator`
+`POST /api/mfs-sms/test-simulator` or `POST /mfs-sms/test-simulator`
 ```json
 {
   "provider": "nagad",

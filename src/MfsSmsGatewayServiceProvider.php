@@ -37,9 +37,28 @@ class MfsSmsGatewayServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // 1. Load Package Routes
-        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        // 1. Load Package Routes (prefer published route files if present)
+        if (file_exists(base_path('routes/mfs-sms.php'))) {
+            $this->loadRoutesFrom(base_path('routes/mfs-sms.php'));
+        } else {
+            if (file_exists(base_path('routes/mfs-sms-web.php'))) {
+                $this->loadRoutesFrom(base_path('routes/mfs-sms-web.php'));
+            } else {
+                $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+            }
+
+            if (file_exists(base_path('routes/mfs-sms-api.php'))) {
+                $this->loadRoutesFrom(base_path('routes/mfs-sms-api.php'));
+            } else {
+                $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+            }
+
+            if (file_exists(base_path('routes/mfs-sms-admin.php'))) {
+                $this->loadRoutesFrom(base_path('routes/mfs-sms-admin.php'));
+            } else {
+                $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');
+            }
+        }
 
         // 2. Load Package Migrations
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
@@ -63,6 +82,13 @@ class MfsSmsGatewayServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../resources/views' => resource_path('views/vendor/mfs-sms-gateway'),
             ], 'mfs-sms-views');
+
+            // Publish routes (optional for route customization)
+            $this->publishes([
+                __DIR__ . '/../routes/web.php' => base_path('routes/mfs-sms-web.php'),
+                __DIR__ . '/../routes/api.php' => base_path('routes/mfs-sms-api.php'),
+                __DIR__ . '/../routes/admin.php' => base_path('routes/mfs-sms-admin.php'),
+            ], 'mfs-sms-routes');
         }
     }
 }
