@@ -1,0 +1,49 @@
+{
+    "name": "prantiksoft/laravel-mfs-sms-gateway",
+    "description": "Automated Bangladeshi MFS (bKash, Nagad, Rocket) SMS Forwarding Payment Gateway for Laravel with zero customer manual TrxID entry.",
+    "keywords": [
+        "laravel",
+        "bangladesh",
+        "mfs",
+        "bkash",
+        "nagad",
+        "rocket",
+        "sms-gateway",
+        "sms-forwarder",
+        "payment-gateway",
+        "automated-payment"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "PRANTIK-SOFT",
+            "email": "support@prantiksoft.com",
+            "homepage": "https://prantiksoft.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0|^8.1|^8.2|^8.3",
+        "illuminate/support": "^9.0|^10.0|^11.0",
+        "illuminate/database": "^9.0|^10.0|^11.0",
+        "illuminate/routing": "^9.0|^10.0|^11.0",
+        "illuminate/view": "^9.0|^10.0|^11.0",
+        "illuminate/http": "^9.0|^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Prantiksoft\\MfsSmsGateway\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Prantiksoft\\MfsSmsGateway\\MfsSmsGatewayServiceProvider"
+            ],
+            "aliases": {
+                "MfsSms": "Prantiksoft\\MfsSmsGateway\\Facades\\MfsSms"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
