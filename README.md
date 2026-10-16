@@ -83,19 +83,19 @@ Add your wallet numbers and secret webhook tokens:
 ```env
 # bKash SMS Settings
 BKASH_SMS_ENABLED=true
-BKASH_SMS_NUMBER=01712345678
+BKASH_SMS_NUMBER=01735254295
 BKASH_SMS_TYPE=Personal
 BKASH_SMS_WEBHOOK_TOKEN=your_random_secret_token_bkash
 
 # Nagad SMS Settings
 NAGAD_SMS_ENABLED=true
-NAGAD_SMS_NUMBER=01712345678
+NAGAD_SMS_NUMBER=01735254295
 NAGAD_SMS_TYPE=Personal
 NAGAD_SMS_WEBHOOK_TOKEN=your_random_secret_token_nagad
 
 # Rocket SMS Settings (Optional)
 ROCKET_SMS_ENABLED=false
-ROCKET_SMS_NUMBER=01712345678-9
+ROCKET_SMS_NUMBER=01735254295-9
 ROCKET_SMS_WEBHOOK_TOKEN=your_random_secret_token_rocket
 
 # Order Model Customization (if your columns differ from defaults)

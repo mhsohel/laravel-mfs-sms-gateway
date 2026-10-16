@@ -195,9 +195,9 @@
         <div class="copy-box">
           <div>
             <span class="badge me-1" style="background: var(--mfs-primary); color: #fff;">{{ ucfirst($provider) }}</span>
-            <strong class="font-monospace fs-5 text-dark" id="wallet_number">{{ $gatewayConfig['number'] ?? '01712345678' }}</strong>
+            <strong class="font-monospace fs-5 text-dark" id="wallet_number">{{ $gatewayConfig['number'] ?? '01735254295' }}</strong>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyText('{{ $gatewayConfig['number'] ?? '01712345678' }}', 'Wallet number copied!')">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyText('{{ $gatewayConfig['number'] ?? '01735254295' }}', 'Wallet number copied!')">
             <i class="fa-regular fa-copy me-1"></i> Copy
           </button>
         </div>

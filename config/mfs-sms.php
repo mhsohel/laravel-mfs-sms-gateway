@@ -31,7 +31,7 @@ return [
         'bkash' => [
             'enabled'      => env('BKASH_SMS_ENABLED', true),
             'title'        => 'bKash Direct (Auto-Verified via SMS)',
-            'number'       => env('BKASH_SMS_NUMBER', '01712345678'),
+            'number'       => env('BKASH_SMS_NUMBER', '01735254295'),
             'type'         => env('BKASH_SMS_TYPE', 'Personal'), // Personal, Merchant, Agent
             'webhook_token'=> env('BKASH_SMS_WEBHOOK_TOKEN', 'mfs_secret_token_bkash_2026'),
             'brand_color'  => '#e2136e',
@@ -42,7 +42,7 @@ return [
         'nagad' => [
             'enabled'      => env('NAGAD_SMS_ENABLED', true),
             'title'        => 'Nagad Direct (Auto-Verified via SMS)',
-            'number'       => env('NAGAD_SMS_NUMBER', '01712345678'),
+            'number'       => env('NAGAD_SMS_NUMBER', '01735254295'),
             'type'         => env('NAGAD_SMS_TYPE', 'Personal'), // Personal, Merchant, Uddokta
             'webhook_token'=> env('NAGAD_SMS_WEBHOOK_TOKEN', 'mfs_secret_token_nagad_2026'),
             'brand_color'  => '#f04923',
@@ -53,7 +53,7 @@ return [
         'rocket' => [
             'enabled'      => env('ROCKET_SMS_ENABLED', false),
             'title'        => 'Rocket Direct (Auto-Verified via SMS)',
-            'number'       => env('ROCKET_SMS_NUMBER', '01712345678-9'),
+            'number'       => env('ROCKET_SMS_NUMBER', '01735254295-9'),
             'type'         => env('ROCKET_SMS_TYPE', 'Personal'),
             'webhook_token'=> env('ROCKET_SMS_WEBHOOK_TOKEN', 'mfs_secret_token_rocket_2026'),
             'brand_color'  => '#8c2d82',
