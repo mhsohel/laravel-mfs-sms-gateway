@@ -124,8 +124,8 @@ ROCKET_SMS_ENABLED=false
 ROCKET_SMS_NUMBER=01735254295-9
 ROCKET_SMS_WEBHOOK_TOKEN=your_random_secret_token_rocket
 
-# Order Model Customization (if your columns differ from defaults)
-MFS_ORDER_MODEL="App\Models\Order"
+# Order Model Customization (use single quotes or double backslashes for namespaces in .env)
+MFS_ORDER_MODEL='App\Models\Order'
 MFS_PAID_STATUS_VALUE=7
 MFS_PAID_PAYMENT_STATUS_VALUE="paid"
 MFS_TIMEOUT_MINUTES=15
