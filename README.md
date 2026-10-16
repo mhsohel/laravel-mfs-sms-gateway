@@ -4,7 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/prantiksoft/laravel-mfs-sms-gateway.svg?style=flat-square)](https://packagist.org/packages/prantiksoft/laravel-mfs-sms-gateway)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 
-An automated, plug-and-play Bangladeshi Mobile Financial Services (**bKash**, **Nagad**, and **Rocket**) SMS forwarder payment gateway package for **Laravel 9, 10, and 11**.
+An automated, plug-and-play Bangladeshi Mobile Financial Services (**bKash**, **Nagad**, and **Rocket**) SMS forwarder payment gateway package for **Laravel 8, 9, 10, 11, and 12**.
 
 Customers pay directly to your personal/merchant SIM via Send Money or Payment. An Android phone with an SMS forwarder app catches the transaction notification SMS and posts it to your Laravel webhook. This package **instantly parses the SMS, matches the pending order, updates the order status to paid, and redirects the customer—without requiring them to manually type a Transaction ID!**
 
@@ -24,8 +24,8 @@ Customers pay directly to your personal/merchant SIM via Send Money or Payment. 
 
 ## 📦 Requirements
 
-- PHP `^8.0` | `^8.1` | `^8.2` | `^8.3`
-- Laravel `^9.0` | `^10.0` | `^11.0`
+- PHP `^8.0` | `^8.1` | `^8.2` | `^8.3` | `^8.4`
+- Laravel `^8.0` | `^9.0` | `^10.0` | `^11.0` | `^12.0`
 
 ---
 
